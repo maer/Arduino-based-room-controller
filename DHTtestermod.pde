@@ -7,7 +7,6 @@
 
 
 // pin definitions
-
 #define sensirionDataPin  2
 #define sensirionClockPin 3
 #define DHT1PIN 4
