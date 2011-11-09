@@ -21,7 +21,9 @@
 float temperature;
 float humidity;
 float dewpoint;
-int sensorValue; 
+float dht2d;
+int sensorValue;
+
 
 
 // class declaration
@@ -84,52 +86,55 @@ void loop() {
   if (isnan(dht1t) || isnan(dht1h)) {
     Serial.println("Failed to read from DHT1");
   } else {
-    Serial.print("OutsideTemperature: "); 
+    Serial.print("OutsideTemperature: \t"); 
     Serial.print(DallasTemperature::toFahrenheit(dht1t));
     Serial.print(" *F");
-    Serial.print("  OutsideHumidity: "); 
+    Serial.print("\tOutsideHumidity: \t"); 
     Serial.println(dht1h);
   }
   
     if (isnan(dht2t) || isnan(dht2h)) {
     Serial.println("Failed to read from DHT2");
   } else {
-    Serial.print("InsideHumidity: "); 
-    Serial.print(dht2h);
-    Serial.print(" %\t");
-    Serial.print("InsideTemperature: "); 
+    Serial.print("InsideTemperature: \t"); 
     Serial.print(DallasTemperature::toFahrenheit(dht2t));
-    Serial.println(" *F");
+    Serial.print(" *F");
+    Serial.print("\tInsideHumidity: \t"); 
+    Serial.println(dht2h);
+//    dht2d = Sensirion::getDewpoint(dht2t, dht2h);
+//    Serial.println(dht2d);
   }
 
 //sensorion code
 
    tempSensor.measure(&temperature, &humidity, &dewpoint); //sensorion code
 
-  Serial.print("STemperature: ");
+  Serial.print("STemperature: \t\t");
   serialPrintFloat(DallasTemperature::toFahrenheit(temperature));
-  Serial.print(" F, SHumidity: ");
+  Serial.print(" *F\tSHumidity: \t\t");
   serialPrintFloat(humidity);
-  Serial.print(" %, SDewpoint: ");
+  Serial.print(" %\t\tSDewpoint: ");
   serialPrintFloat(DallasTemperature::toFahrenheit(dewpoint));
   Serial.println(" F");
 
 
 //onewire
   
-    Serial.print("Requesting temperatures...");
+//    Serial.print("Requesting temperatures...");
    sensors.requestTemperatures();
-  Serial.println("DONE");
+//  Serial.println("DONE");
 
   printData(insideThermometer);
-  printData(outsideThermometer);
-  Serial.println();
+//  printData(outsideThermometer);
 
 
 //distance sensor
   
 sensorValue = analogRead(0);
+Serial.print("Distance Reading: \t");
 Serial.println(sensorValue, DEC);
+
+Serial.println();
 
 
 // general
@@ -168,16 +173,17 @@ void printTemperature(DeviceAddress deviceAddress)
   float tempC = sensors.getTempC(deviceAddress);
 //  Serial.print("Temp C: ");
 //  Serial.print(tempC);
-  Serial.print(" Temp F: ");
+  Serial.print("Onewire Temp: \t\t");
   Serial.print(DallasTemperature::toFahrenheit(tempC));
+  Serial.print(" *F");  
 }
 
 // main function to print information about a device
 void printData(DeviceAddress deviceAddress)
 {
-  Serial.print("Device Address: ");
-  printAddress(deviceAddress);
-  Serial.print(" ");
+//  Serial.print("Device Address: ");
+//  printAddress(deviceAddress);
+//  Serial.print(" ");
   printTemperature(deviceAddress);
   Serial.println();
 }
