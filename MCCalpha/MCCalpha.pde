@@ -18,10 +18,17 @@
 
 // variables
 
-float temperature;
-float humidity;
-float dewpoint;
+//sensorion
+
+float stemperature;
+float shumidity;
+float sdewpoint;
+
+// dht test variable to use dewpoint function
+
 float dht2d;
+
+
 int sensorValue;
 
 
@@ -100,21 +107,22 @@ void loop() {
     Serial.print(DallasTemperature::toFahrenheit(dht2t));
     Serial.print(" *F");
     Serial.print("\tInsideHumidity: \t"); 
-    Serial.println(dht2h);
-//    dht2d = Sensirion::getDewpoint(dht2t, dht2h);
-//    Serial.println(dht2d);
+    Serial.print(dht2h);
+    Serial.print("\tDewpoint: \t");     
+    dht2d = getDewpointlocal(dht2h, dht2t);
+    Serial.println(dht2d);
   }
 
 //sensorion code
 
-   tempSensor.measure(&temperature, &humidity, &dewpoint); //sensorion code
+  tempSensor.measure(&stemperature, &shumidity, &sdewpoint);
 
   Serial.print("STemperature: \t\t");
-  serialPrintFloat(DallasTemperature::toFahrenheit(temperature));
+  serialPrintFloat(DallasTemperature::toFahrenheit(stemperature));
   Serial.print(" *F\tSHumidity: \t\t");
-  serialPrintFloat(humidity);
+  serialPrintFloat(shumidity);
   Serial.print(" %\t\tSDewpoint: ");
-  serialPrintFloat(DallasTemperature::toFahrenheit(dewpoint));
+  serialPrintFloat(DallasTemperature::toFahrenheit(sdewpoint));
   Serial.println(" F");
 
 
@@ -186,5 +194,12 @@ void printData(DeviceAddress deviceAddress)
 //  Serial.print(" ");
   printTemperature(deviceAddress);
   Serial.println();
+}
+
+float getDewpointlocal(float h, float t){ 
+  float logEx, dew_point;
+  logEx = 0.66077 + 7.5 * t / (237.3 + t) + (log10(h) - 2);
+  dew_point = (logEx - 0.66077) * 237.3 / (0.66077 + 7.5 - logEx);
+  return dew_point;
 }
 
