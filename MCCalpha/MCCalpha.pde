@@ -7,11 +7,11 @@
 
 
 // pin definitions
-#define sensirionDataPin  2
+#define sensirionDataPin  2 // sensor #0
 #define sensirionClockPin 3
-#define DHT1PIN 4
-#define DHT2PIN 5
-#define ONE_WIRE_BUS 6
+#define DHT1PIN 4 //sensor #1
+#define DHT2PIN 5 //sensor #2
+#define ONE_WIRE_BUS 6 //sensor #3??
 
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 
@@ -23,14 +23,28 @@
 float stemperature;
 float shumidity;
 float sdewpoint;
+float sensorarray [8][10];
 
 // dht test variable to use dewpoint function
-
 float dht2d;
 
+// distance sensor variable
 
 int sensorValue;
 
+int i; //loop counter
+
+
+// set points
+
+float lowSetTempDay = 70.0;
+float highSetTempDay = 75.0;
+float lowSetTempNight = 60.0;
+float highSetTempNight = 65.0;
+float lowHumDay = 40.0;
+float highHumDay = 70.0;
+float lowHumNight = 40.0;
+float highHumNight = 70.0;
 
 
 // class declaration
@@ -69,21 +83,27 @@ void setup() {
   Serial.print("Device 1 Address: ");
   printAddress(outsideThermometer);
   Serial.println();
-  Serial.println(); 
 
 
 // DHT Code
 
   dht1.begin();
   dht2.begin();  
+  
+  i=0;
 }
 
 
 // main code
 
 void loop() {
+
+if (i=10) {
+i=0;
+} else {
   
 //DHT Code
+
 
   float dht1h = dht1.readHumidity();
   float dht1t = dht1.readTemperature();
@@ -137,17 +157,34 @@ void loop() {
 
 
 //distance sensor
-  
+
 sensorValue = analogRead(0);
 Serial.print("Distance Reading: \t");
 Serial.println(sensorValue, DEC);
 
 Serial.println();
 
+// assign readings to array
+
+
+
+
+
+// logic
+
+
+
+
 
 // general
 
   delay(7000);
+  
+  i=i++;
+  
+  
+}
+
 }
 
 
