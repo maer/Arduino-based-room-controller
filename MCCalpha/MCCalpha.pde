@@ -6,7 +6,9 @@
 #include <DallasTemperature.h>
 
 
+
 // pin definitions
+
 #define sensirionDataPin  2 // sensor #0
 #define sensirionClockPin 3
 #define DHT1PIN 4 //sensor #1
@@ -16,7 +18,9 @@
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 
 
+
 // variables
+
 
 //sensorion
 
@@ -24,18 +28,16 @@ float stemperature;
 float shumidity;
 float sdewpoint;
 float sensorarray [8][10];
-
 float avgtemp;
 float avghum;
+boolean fanIsOn;
 
-// dht test variable to use dewpoint function
-//float dht2d;
 
 // distance sensor variable
 
 int sensorValue;
 
-int i; //loop counter
+int i = 0; //loop counter
 
 float onewiretemp;
 
@@ -99,7 +101,6 @@ void setup() {
   pinMode(11, OUTPUT); // humidifier
   pinMode(10, OUTPUT); // indicator to alert to fill res
   
-  i=0;
 }
 
 
@@ -192,10 +193,12 @@ avghum = (shumidity + dht1h + dht2h) /3;
 if (avgtemp > highSetTempDay) {
   
   digitalWrite(12, HIGH);  // turn on led indicating fan on
+  fanIsOn=true;
 
 } else if (avgtemp < lowSetTempDay) {
   
   digitalWrite(12,LOW);  // turn off fan LED
+  fanIsOn=false;
 }
 
 // turn fan on if humidity is too high and temp is higher than low set point
@@ -203,10 +206,12 @@ if (avgtemp > highSetTempDay) {
 if ((avghum > highHumDay)&& (avgtemp>lowSetTempDay)){
   
   digitalWrite(12, HIGH);  // turn on led indicating fan on
+  fanIsOn=true;  
 
 } else if (avghum-hyst < lowHumDay) {
   
   digitalWrite(12,LOW);  // turn off fan LED
+  fanIsOn=false;
 }
 
 // turn humudifier on if humidity is too low or off if too high
@@ -232,15 +237,20 @@ if (avgtemp < lowSetTempNight) {
   digitalWrite(13, LOW);
 }
 
+
 // general
 
   delay(7000);
   
   i=i++; 
 
+
 }  // end of else statement
 
+
 } // end of void loop
+
+
 
 //procedures
 
