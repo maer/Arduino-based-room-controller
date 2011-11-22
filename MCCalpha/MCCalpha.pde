@@ -25,8 +25,11 @@ float shumidity;
 float sdewpoint;
 float sensorarray [8][10];
 
+float avgtemp;
+float avghum;
+
 // dht test variable to use dewpoint function
-float dht2d;
+//float dht2d;
 
 // distance sensor variable
 
@@ -34,6 +37,7 @@ int sensorValue;
 
 int i; //loop counter
 
+float onewiretemp;
 
 // set points
 
@@ -45,7 +49,7 @@ float lowHumDay = 40.0;
 float highHumDay = 70.0;
 float lowHumNight = 40.0;
 float highHumNight = 70.0;
-
+float hyst = 1.0;
 
 // class declaration
 
@@ -53,13 +57,13 @@ Sensirion tempSensor = Sensirion(sensirionDataPin, sensirionClockPin);
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
-DeviceAddress insideThermometer, outsideThermometer;
+DeviceAddress insideThermometer; //, outsideThermometer;
 
 DHT dht1(DHT1PIN, DHTTYPE);
 DHT dht2(DHT2PIN, DHTTYPE);
 
 
-// setup
+// **** Setup
 
 void setup() {
   Serial.begin(9600);
@@ -74,21 +78,26 @@ void setup() {
   Serial.println(" devices.");
 
   if (!sensors.getAddress(insideThermometer, 0)) Serial.println("Unable to find address for Device 0"); 
-  if (!sensors.getAddress(outsideThermometer, 1)) Serial.println("Unable to find address for Device 1"); 
+//  if (!sensors.getAddress(outsideThermometer, 1)) Serial.println("Unable to find address for Device 1"); 
 
   Serial.print("Device 0 Address: ");
   printAddress(insideThermometer);
   Serial.println();
 
-  Serial.print("Device 1 Address: ");
-  printAddress(outsideThermometer);
-  Serial.println();
+//  Serial.print("Device 1 Address: ");
+//  printAddress(outsideThermometer);
+//  Serial.println();
 
 
 // DHT Code
 
   dht1.begin();
   dht2.begin();  
+  
+  pinMode(13, OUTPUT); // heater
+  pinMode(12, OUTPUT); // fan bringing air from outside
+  pinMode(11, OUTPUT); // humidifier
+  pinMode(10, OUTPUT); // indicator to alert to fill res
   
   i=0;
 }
@@ -128,9 +137,9 @@ i=0;
     Serial.print(" *F");
     Serial.print("\tInsideHumidity: \t"); 
     Serial.print(dht2h);
-    Serial.print("\tDewpoint: \t");     
-    dht2d = getDewpointlocal(dht2h, dht2t);
-    Serial.println(dht2d);
+    Serial.println("\tDewpoint: \t");     
+//    dht2d = getDewpointlocal(dht2h, dht2t);
+//    Serial.println(dht2d);
   }
 
 //sensorion code
@@ -148,12 +157,8 @@ i=0;
 
 //onewire
   
-//    Serial.print("Requesting temperatures...");
-   sensors.requestTemperatures();
-//  Serial.println("DONE");
 
-  printData(insideThermometer);
-//  printData(outsideThermometer);
+onewiretemp = printTemperature(insideThermometer);
 
 
 //distance sensor
@@ -166,27 +171,76 @@ Serial.println();
 
 // assign readings to array
 
+sensorarray [0][i] = stemperature;
+sensorarray [1][i] = shumidity;
+sensorarray [2][i] = dht1t;
+sensorarray [3][i] = dht1h;
+sensorarray [4][i] = dht2t;
+sensorarray [5][i] = dht2h;
+sensorarray [6][i] = onewiretemp; // res temp
+sensorarray [7][i] = sensorValue;
 
+// averages
 
+avgtemp = (stemperature+dht1t+dht2t)/3;
+avghum = (shumidity + dht1h + dht2h) /3;
 
+// logic no day night now as i have no rtc
 
-// logic
+// turn fan on if temp is higher than high temp, or off if lower than low temp
 
+if (avgtemp > highSetTempDay) {
+  
+  digitalWrite(12, HIGH);  // turn on led indicating fan on
 
+} else if (avgtemp < lowSetTempDay) {
+  
+  digitalWrite(12,LOW);  // turn off fan LED
+}
 
+// turn fan on if humidity is too high and temp is higher than low set point
 
+if ((avghum > highHumDay)&& (avgtemp>lowSetTempDay)){
+  
+  digitalWrite(12, HIGH);  // turn on led indicating fan on
+
+} else if (avghum-hyst < lowHumDay) {
+  
+  digitalWrite(12,LOW);  // turn off fan LED
+}
+
+// turn humudifier on if humidity is too low or off if too high
+
+if (avghum < lowHumDay) {
+  
+  digitalWrite(11, HIGH);  // turn on led indicating humidifier on
+
+} else if (avghum+hyst > highHumDay) {
+  
+  digitalWrite(12,LOW);  // turn off humidifier LED
+}
+
+// turn heater on if temp is too low or off if too high
+
+if (avgtemp < lowSetTempNight) {
+  
+  digitalWrite(13, HIGH);
+  } 
+  
+  else if (avgtemp > highSetTempNight) {
+  
+  digitalWrite(13, LOW);
+}
 
 // general
 
   delay(7000);
   
-  i=i++;
-  
-  
-}
+  i=i++; 
 
-}
+}  // end of else statement
 
+} // end of void loop
 
 //procedures
 
@@ -213,25 +267,20 @@ void printAddress(DeviceAddress deviceAddress)
 
 // function to print the temperature for a device
 
-void printTemperature(DeviceAddress deviceAddress)
+float printTemperature(DeviceAddress deviceAddress)
 {
   float tempC = sensors.getTempC(deviceAddress);
 //  Serial.print("Temp C: ");
 //  Serial.print(tempC);
-  Serial.print("Onewire Temp: \t\t");
-  Serial.print(DallasTemperature::toFahrenheit(tempC));
-  Serial.print(" *F");  
+//  Serial.print("Onewire Temp: \t\t");
+//  Serial.print(DallasTemperature::toFahrenheit(tempC));
+//  Serial.print(" *F");  
+return tempC;
 }
 
-// main function to print information about a device
-void printData(DeviceAddress deviceAddress)
-{
-//  Serial.print("Device Address: ");
-//  printAddress(deviceAddress);
-//  Serial.print(" ");
-  printTemperature(deviceAddress);
-  Serial.println();
-}
+
+
+// convert temp and humidity to dewpoint 
 
 float getDewpointlocal(float h, float t){ 
   float logEx, dew_point;
