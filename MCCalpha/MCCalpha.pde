@@ -13,7 +13,7 @@
 #define sensirionClockPin 3
 #define DHT1PIN 4 //sensor #1
 #define DHT2PIN 5 //sensor #2
-#define ONE_WIRE_BUS 6 //sensor #3??
+#define ONE_WIRE_BUS 7 //sensor #3??
 
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 
@@ -27,9 +27,18 @@
 float stemperature;
 float shumidity;
 float sdewpoint;
+
+//array for reading history
+
 float sensorarray [8][10];
+
+//avg temp eacy cycle
+
 float avgtemp;
 float avghum;
+
+// booleans for on and off
+
 boolean fanIsOn;
 
 
@@ -110,8 +119,8 @@ void loop() {
 
 if (i=10) {
 i=0;
-} else {
-  
+}
+
 //DHT Code
 
 
@@ -160,7 +169,8 @@ i=0;
   
 
 onewiretemp = printTemperature(insideThermometer);
-
+Serial.print("onewiretemp:");
+Serial.println(DallasTemperature::toFahrenheit(onewiretemp));
 
 //distance sensor
 
@@ -185,6 +195,7 @@ sensorarray [7][i] = sensorValue;
 
 avgtemp = (stemperature+dht1t+dht2t)/3;
 avghum = (shumidity + dht1h + dht2h) /3;
+avgtemp = DallasTemperature::toFahrenheit(avgtemp);
 
 // logic no day night now as i have no rtc
 
@@ -227,25 +238,25 @@ if (avghum < lowHumDay) {
 
 // turn heater on if temp is too low or off if too high
 
-if (avgtemp < lowSetTempNight) {
+if (avgtemp < lowSetTempDay) {
   
   digitalWrite(13, HIGH);
   } 
   
-  else if (avgtemp > highSetTempNight) {
+  else if (avgtemp > highSetTempDay) {
   
   digitalWrite(13, LOW);
 }
-
+Serial.print("avgtemp:");
+Serial.println(avgtemp);
+Serial.print("avghum:");
+Serial.println (avghum);
 
 // general
 
   delay(7000);
   
   i=i++; 
-
-
-}  // end of else statement
 
 
 } // end of void loop
