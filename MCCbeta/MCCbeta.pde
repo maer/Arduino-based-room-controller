@@ -54,7 +54,7 @@ float onewiretemp;
 
 // set points
 
-float tempDay = 72.5;
+float tempDay = 75.0;
 float tempNight = 60.0;
 float humDay = 55.0;
 float humNight = 55.0;
@@ -219,6 +219,7 @@ Serial.println();
   
   sensors.requestTemperatures();
   onewiretemp=(DallasTemperature::toFahrenheit(sensors.getTempC(insideThermometer)));
+  Serial.println(onewiretemp);
   
 // assign readings to array
 
