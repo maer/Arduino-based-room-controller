@@ -236,7 +236,7 @@ avgtemp = DallasTemperature::toFahrenheit(avgtemp);
 // turn fan on if temp is higher than high temp, or off if lower than low temp
 
 
-if ( (avgtemp > tempDay+hyst && isDay) || (avgtemp > tempNight+hyst && !isDay) {
+if ( (avgtemp > tempDay+hyst && isDay) || (avgtemp > tempNight+hyst && !isDay) ) {
   
   fanIsOn=true;
 
