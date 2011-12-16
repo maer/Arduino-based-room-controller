@@ -54,8 +54,8 @@ float onewiretemp;
 
 // set points
 
-float tempDay = 75.0;
-float tempNight = 60.0;
+float tempDay = 75.5;
+float tempNight = 67.5;
 float humDay = 55.0;
 float humNight = 55.0;
 float hyst = 1.0;
@@ -145,7 +145,7 @@ nowSecond = now.unixtime()%86400;
 if ( (nowSecond >= onSecond) && (nowSecond < offSecond) ){
 isDay=true;
 } else {
-  Serial.println("night");
+  isDay=false;
 }
 
 
@@ -162,6 +162,8 @@ Serial.println(onSecond);
 Serial.println(offSecond);
 if (isDay) {
   Serial.println("isDay");
+} else {
+    Serial.println("night");
 }
 
 if (fanIsOn) {
