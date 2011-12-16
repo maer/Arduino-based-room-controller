@@ -21,6 +21,10 @@
 
 // variables
 
+float dht1h;
+float dht1t;
+float dht2h;
+float dht2t;
 
 //sensorion
 
@@ -111,18 +115,13 @@ void setup() {
   Serial.println(" devices.");
 
   if (!sensors.getAddress(insideThermometer, 0)) Serial.println("Unable to find address for Device 0"); 
-//  if (!sensors.getAddress(outsideThermometer, 1)) Serial.println("Unable to find address for Device 1"); 
 
   Serial.print("Device 0 Address: ");
   printAddress(insideThermometer);
   Serial.println();
 
-//  Serial.print("Device 1 Address: ");
-//  printAddress(outsideThermometer);
-//  Serial.println();
 
-
-// DHT Code
+// DHT
 
   dht1.begin();
   dht2.begin();  
@@ -154,78 +153,32 @@ loopCount=0;
 }
 
 
-// DEBUGGING
-
-Serial.println(nowSecond);
-Serial.println(loopCount);
-Serial.println(onSecond);
-Serial.println(offSecond);
-if (isDay) {
-  Serial.println("isDay");
-} else {
-    Serial.println("night");
-}
-
-if (fanIsOn) {
-  Serial.println("Fan is on");
-}
-
-Serial.println();
-
-
-
 //DHT Code
 
 
-  float dht1h = dht1.readHumidity();
-  float dht1t = dht1.readTemperature();
-  float dht2h = dht2.readHumidity();
-  float dht2t = dht2.readTemperature();
+dht1h = dht1.readHumidity();
+dht1t = dht1.readTemperature();
+dht2h = dht2.readHumidity();
+dht2t = dht2.readTemperature();
 
   if (isnan(dht1t) || isnan(dht1h)) {
     Serial.println("Failed to read from DHT1");
-  } else {
-    Serial.print("OutsideTemperature: \t"); 
-    Serial.print(DallasTemperature::toFahrenheit(dht1t));
-    Serial.print(" *F");
-    Serial.print("\tOutsideHumidity: \t"); 
-    Serial.println(dht1h);
   }
-
     if (isnan(dht2t) || isnan(dht2h)) {
     Serial.println("Failed to read from DHT2");
-  } else {
-    Serial.print("InsideTemperature: \t");
-    Serial.print(DallasTemperature::toFahrenheit(dht2t));
-    Serial.print(" *F");
-    Serial.print("\tInsideHumidity: \t");
-    Serial.print(dht2h);
-    Serial.println("\tDewpoint: \t");
-
   }
+ 
 
 //sensorion code
-
   tempSensor.measure(&stemperature, &shumidity, &sdewpoint);
-
-  Serial.print("STemperature: \t\t");
-  serialPrintFloat(DallasTemperature::toFahrenheit(stemperature));
-  Serial.print(" *F\tSHumidity: \t\t");
-  serialPrintFloat(shumidity);
-  Serial.print(" %\t\tSDewpoint: ");
-  serialPrintFloat(DallasTemperature::toFahrenheit(sdewpoint));
-  Serial.println(" F");
 
 
 //onewire
-  
   sensors.requestTemperatures();
   onewiretemp=(DallasTemperature::toFahrenheit(sensors.getTempC(insideThermometer)));
-  Serial.println(onewiretemp);
+  
   
 // assign readings to array
-
-
 sensorarray [0][loopCount] = stemperature;
 sensorarray [1][loopCount] = shumidity;
 sensorarray [2][loopCount] = dht1t;
@@ -237,8 +190,6 @@ sensorarray [7][loopCount] = sensorValue;
 
 
 // averages
-
-
 avgtemp = (stemperature+dht1t+dht2t)/3;
 avghum = (shumidity + dht1h + dht2h) /3;
 avgtemp = DallasTemperature::toFahrenheit(avgtemp);
@@ -247,8 +198,6 @@ avgtemp = DallasTemperature::toFahrenheit(avgtemp);
 // Logic
 
 // turn fan on if temp is higher than high temp, or off if lower than low temp
-
-
 if ( ( (avgtemp > tempDay+hyst) && isDay) || ( (avgtemp > tempNight+hyst) && !isDay) ) {
   
   fanIsOn=true;
@@ -259,7 +208,6 @@ if ( ( (avgtemp > tempDay+hyst) && isDay) || ( (avgtemp > tempNight+hyst) && !is
 }
 
 // turn humudifier on if humidity is too low or off if too high
-
 if (avghum < humDay) {
   humidifierIsOn= true;
 } else if (avghum+hyst > humDay) {
@@ -267,7 +215,6 @@ if (avghum < humDay) {
 }
 
 // turn heater on if temp is too low or off if too high
-
 if (avgtemp < tempDay) {
   heaterIsOn=true;
   }   
@@ -276,7 +223,6 @@ if (avgtemp < tempDay) {
 }
 
 // Make changes dictated by logic
-
 if (fanIsOn) {
   digitalWrite(fanPin, HIGH);
 }
@@ -285,15 +231,65 @@ else if (!fanIsOn) {
 }
 
 
-Serial.print("avgtemp:");
+// OUPTPUT 
+Serial.println();
+Serial.println();
+Serial.println();
+Serial.println();
+
+Serial.print("DHT1Temp: \t"); 
+Serial.print(DallasTemperature::toFahrenheit(dht1t));
+Serial.print(" *F");
+Serial.print("\tDHT1Hum: \t"); 
+Serial.println(dht1h);
+
+Serial.print("DHT2Temp: \t");
+Serial.print(DallasTemperature::toFahrenheit(dht2t));
+Serial.print(" *F");
+Serial.print("\tDHT2Hum: \t");
+Serial.println(dht2h);
+
+Serial.print("SS Temp: \t");
+serialPrintFloat(DallasTemperature::toFahrenheit(stemperature));
+Serial.print(" *F\tSS Hum: \t");
+serialPrintFloat(shumidity);
+
+Serial.println();
+
+Serial.print("ResTemp: \t");
+Serial.println(onewiretemp);
+
+Serial.println();
+
+Serial.print("avgtemp:\t");
 Serial.println(avgtemp);
-Serial.print("avghum:");
+
+Serial.print("avghum:\t\t");
 Serial.println (avghum);
 
 
+// DEBUGGING
+Serial.println();
+
+Serial.println("Debugging Info");
+
+Serial.println(loopCount);
+Serial.println(nowSecond);
+Serial.println(onSecond);
+Serial.println(offSecond);
+
+if (isDay) {
+  Serial.println("isDay");
+} else {
+    Serial.println("night");
+}
+
+if (fanIsOn) {
+  Serial.println("Fan is on");
+}
+
+
 // general
-
-
   delay(7000);
   
   loopCount=loopCount++; 
@@ -304,7 +300,6 @@ Serial.println (avghum);
 
 
 //procedures
-
 void serialPrintFloat(float f){
   Serial.print((int)f);
   Serial.print(".");
@@ -331,8 +326,6 @@ void printAddress(DeviceAddress deviceAddress)
 void printTemperature(DeviceAddress deviceAddress)
 {
   float tempC = sensors.getTempC(deviceAddress);
-//  Serial.print("Temp C: ");
-//  Serial.print(tempC);
   Serial.print("Onewire Temp: \t\t");
   Serial.print(DallasTemperature::toFahrenheit(tempC));
   Serial.print(" *F");  
@@ -342,9 +335,6 @@ void printTemperature(DeviceAddress deviceAddress)
 // function to print information about a device
 void printData(DeviceAddress deviceAddress)
 {
-//  Serial.print("Device Address: ");
-//  printAddress(deviceAddress);
-//  Serial.print(" ");
   printTemperature(deviceAddress);
   Serial.println();
 }
