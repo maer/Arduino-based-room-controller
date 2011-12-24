@@ -34,24 +34,20 @@ float sdewpoint;
 
 //array for reading history
 
-float sensorarray [8][10];
+float sensorarray [10][10];
 
 //avg temp eacy cycle
-
+float prevTemp;
 float avgtemp;
 float avghum;
 
 // booleans for on and off
-
 boolean fanIsOn; 
 boolean heaterIsOn;
 boolean humidifierIsOn;
 boolean resNeedsFill;
 boolean isDay;
 
-// distance sensor variable
-
-int sensorValue;
 int loopCount;
 
 float onewiretemp;
@@ -69,6 +65,11 @@ float onMinute = 0.0;
 float offHour = 22.0;
 float offMinute = 0.0;
 
+float fanOnSecond;
+float fanOffSecond;
+float fanOnTime;
+float fanOffTime;
+
 int fanPin = 7;
 int resFanPin;
 int heaterPin;
@@ -78,6 +79,9 @@ int humidifierPin;
 float onSecond = onHour*3600.0 + onMinute*60.0;
 float offSecond = offHour*3600.0 + offMinute*60.0;
 float nowSecond;
+float prevSecond;
+float prevFanOffSecond;
+float prevFanOnSecond;
 
 // class declaration
 
@@ -137,7 +141,20 @@ void setup() {
 void loop() {
 
 // RTC  
+for (int z=0; z<=8; z++) {
+  sensorarray [0][z] = sensorarray [0][(z+1)];
+  sensorarray [1][z] = sensorarray [1][(z+1)];  
+  sensorarray [2][z] = sensorarray [2][(z+1)];
+  sensorarray [3][z] = sensorarray [3][(z+1)];
+  sensorarray [4][z] = sensorarray [4][(z+1)];
+  sensorarray [5][z] = sensorarray [5][(z+1)];  
+  sensorarray [6][z] = sensorarray [6][(z+1)];
+  sensorarray [7][z] = sensorarray [7][(z+1)];
+  sensorarray [8][z] = sensorarray [8][(z+1)];
+  sensorarray [9][z] = sensorarray [9][(z+1)];  
+  }
   
+prevSecond = nowSecond;
 DateTime now = RTC.now();
 nowSecond = now.unixtime()%86400;
 
@@ -176,35 +193,47 @@ dht2t = dht2.readTemperature();
 //onewire
   sensors.requestTemperatures();
   onewiretemp=(DallasTemperature::toFahrenheit(sensors.getTempC(insideThermometer)));
-  
-  
-// assign readings to array
-sensorarray [0][loopCount] = stemperature;
-sensorarray [1][loopCount] = shumidity;
-sensorarray [2][loopCount] = dht1t;
-sensorarray [3][loopCount] = dht1h;
-sensorarray [4][loopCount] = dht2t;
-sensorarray [5][loopCount] = dht2h;
-sensorarray [6][loopCount] = onewiretemp; // res temp
-sensorarray [7][loopCount] = sensorValue;
 
 
 // averages
+prevTemp = avgtemp;
 avgtemp = (stemperature+dht1t+dht2t)/3;
 avghum = (shumidity + dht1h + dht2h) /3;
 avgtemp = DallasTemperature::toFahrenheit(avgtemp);
+
+
+// assign readings to array
+sensorarray [0][9] = stemperature;
+sensorarray [1][9] = shumidity;
+sensorarray [2][9] = dht1t;
+sensorarray [3][9] = dht1h;
+sensorarray [4][9] = dht2t;
+sensorarray [5][9] = dht2h;
+sensorarray [6][9] = onewiretemp; // res temp
+sensorarray [7][9] = avgtemp;
+sensorarray [8][9] = avghum;
+sensorarray [9][9] = nowSecond;
 
 
 // Logic
 
 // turn fan on if temp is higher than high temp, or off if lower than low temp
 if ( ( (avgtemp > tempDay+hyst) && isDay) || ( (avgtemp > tempNight+hyst) && !isDay) ) {
+  if (!fanIsOn) {
+      prevFanOnSecond = fanOnSecond;
+      fanOnSecond = nowSecond;
+  }
   
   fanIsOn=true;
 
+
 } else if ( ( (avgtemp < tempDay-hyst) && isDay) || ( (avgtemp < tempNight-hyst) && !isDay) ){
-  
+  if (fanIsOn){
+     prevFanOffSecond = fanOffSecond;
+     fanOffSecond = nowSecond;
+  }
   fanIsOn=false;
+
 }
 
 // turn humudifier on if humidity is too low or off if too high
@@ -249,9 +278,9 @@ Serial.print(" *F");
 Serial.print("\tDHT2Hum: \t");
 Serial.println(dht2h);
 
-Serial.print("SS Temp: \t");
+Serial.print("SS Temp:\t");
 serialPrintFloat(DallasTemperature::toFahrenheit(stemperature));
-Serial.print(" *F\tSS Hum: \t");
+Serial.print(" *F \tSS Hum: \t");
 serialPrintFloat(shumidity);
 
 Serial.println();
@@ -262,7 +291,11 @@ Serial.println(onewiretemp);
 Serial.println();
 
 Serial.print("avgtemp:\t");
-Serial.println(avgtemp);
+Serial.print(avgtemp);
+Serial.print("\tDelta:\t");
+// float deltaPerMin = ( (avgtemp-prevTemp) / ((nowSecond-prevSecond)/60) );
+float deltaPerMin2 = ( (sensorarray[7][9]-sensorarray[7][6]) / ((sensorarray[9][9]-sensorarray[9][6])/60) ); 
+Serial.println(deltaPerMin2);
 
 Serial.print("avghum:\t\t");
 Serial.println (avghum);
@@ -270,13 +303,36 @@ Serial.println (avghum);
 
 // DEBUGGING
 Serial.println();
-
 Serial.println("Debugging Info");
-
+Serial.println();
+Serial.print("Loop Count:\t\t");
 Serial.println(loopCount);
+Serial.print("Now Second:\t\t");
 Serial.println(nowSecond);
+Serial.print("On Second:\t\t");
 Serial.println(onSecond);
+Serial.print("Off Second:\t\t");
 Serial.println(offSecond);
+Serial.print("Downtime Seconds:\t");
+if (fanIsOn) {
+   Serial.println(fanOnSecond-fanOffSecond);
+} else {
+   Serial.println(fanOnSecond-prevFanOffSecond);
+}
+Serial.print("Ontime Seconds:\t\t");
+
+if (fanIsOn) {
+  Serial.println(fanOffSecond-prevFanOnSecond);
+} else {
+  Serial.println(fanOffSecond-fanOnSecond);
+}
+
+Serial.print("Fan on Second:\t\t");
+Serial.println(fanOnSecond);
+Serial.print("Fan Off Second:\t\t");
+Serial.println(fanOffSecond);
+
+
 
 if (isDay) {
   Serial.println("isDay");

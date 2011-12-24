@@ -1,0 +1,14 @@
+void shiftValues() {
+  for (int z=0; z<=8; z++) {
+  sensorarray [0][z] = sensorarray [0][(z+1)];
+  sensorarray [1][z] = sensorarray [1][(z+1)];  
+  sensorarray [2][z] = sensorarray [2][(z+1)];
+  sensorarray [3][z] = sensorarray [3][(z+1)];
+  sensorarray [4][z] = sensorarray [4][(z+1)];
+  sensorarray [5][z] = sensorarray [5][(z+1)];  
+  sensorarray [6][z] = sensorarray [6][(z+1)];
+  sensorarray [7][z] = sensorarray [7][(z+1)];
+  sensorarray [8][z] = sensorarray [8][(z+1)];
+  sensorarray [9][z] = sensorarray [9][(z+1)];  
+  }
+}
